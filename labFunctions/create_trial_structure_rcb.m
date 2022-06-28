@@ -1,4 +1,4 @@
-function create_trial_structure_jcr(rootdir,neural_dir,wasabi_vid,save_dir,...
+function create_trial_structure_rcb(rootdir,neural_dir,wasabi_vid,save_dir,...
     recsite,expt_type)
 
 plotFig=0;
@@ -10,7 +10,7 @@ saveData=1;
 % recsite = site{i}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % load the timestamps and create session trial labels
-clear con_trial LT_only LT_4hz LT_10hz LT_20hz LT_40hz
+clear con_trial LT_only LT_single LT_4hz LT_10hz LT_20hz LT_40hz
 clear sync table_start trial_start laser laser_start tone light
 clear laser_gate laser_gate_start trial_array
 
@@ -188,6 +188,7 @@ end
 % categorize trials, create lists of trial_type indices
 if expt_type==1
     con_trial = find(trial_array(:,5)==0 & trial_array(:,2)>0); % con_trial trial_start
+    LT_single = find(trial_array(:,2)>0 & trial_array(:,4)==1); % light single pulse
     LT_only = find(trial_array(:,5)==10 & trial_array(:,2)==0); % light only, 10hz
     LT_4hz = find(trial_array(:,5)==4 & trial_array(:,2)>1); % cue and light, 4hz
     LT_10hz = find(trial_array(:,5)==10 & trial_array(:,2)>1); % cue and light, 10hz
@@ -234,8 +235,8 @@ if saveData
 %     save([save_dir filesep 'event_ind.mat'],'trial_array','con_trial','LT_only',...
 %         'LT_4hz','LT_10hz','LT_40hz','LT_gate','-append');
      
-    save([save_dir filesep 'event_ind.mat'],'trial_array','con_trial','LT_only',...
-        'LT_4hz','LT_10hz','LT_40hz','LT_gate','-append');
+    save([save_dir filesep 'event_ind.mat'],'trial_array','con_trial',...
+        'LT_only','LT_single','LT_4hz','LT_10hz','LT_40hz','LT_gate','-append');
 end
 
 disp([neural_dir ' - create trial structure complete'])

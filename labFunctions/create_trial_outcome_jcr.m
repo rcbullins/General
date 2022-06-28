@@ -7,6 +7,8 @@ function create_trial_outcome_jcr(rootdir,neural_dir,vid_dir,save_dir,...
 % then create behavioral timepoints: lift, reach, grasp, atmouth, etc...
 % then create trial outcome variables, such as: success_rate, reach_rate,
 % reaction_time, etc...
+
+% expt_type=exp_type(i);
 %%
 saveData=1;
 
@@ -104,11 +106,13 @@ trial_outcome_array = [];
 
 % acceleration threshold
 if expt_type==1
+    if strcmp(neural_dir,'D:\localData\jcr70\ephys\jcr70_20191016_920um_g0')
+        accel_thresh=0.9e4; % 
+    else
+        accel_thresh=1e4; % 
+    end
+elseif expt_type==2 || expt_type==3
     accel_thresh=1.2e4; % 
-elseif expt_type==2
-    accel_thresh=1.2e4; % 
-elseif expt_type==3
-    accel_thresh=1.3e4; % 
 end
 % the crossing of this value is used to set reach and lift indices.
 
@@ -176,6 +180,8 @@ for t = trial_range
             outcome_frames=500:1750; % con trial start frame for all con_trial trial_start
         elseif LT_shift==25 && CON_shift==25 && ismember(t,con_trial)
             outcome_frames=250:1500; % con trial start frame for all con_trial trial_start
+        elseif strcmp(neural_dir,'D:\localData\jcr70\ephys\jcr70_20191016_920um_g0')
+            outcome_frames=250:2000;
         end
     elseif expt_type==2 || expt_type==3
         outcome_frames=500:1500; % LT trial start frame for these experiments
@@ -206,78 +212,6 @@ for t = trial_range
     
     % outcome
     if expt_type==1
-        lift = find(accelvec(t,outcome_frames)>accel_thresh);
-        if isnan(lift)
-            lift = find(accelvec(t,outcome_frames)>accel_thresh*0.9);
-        end
-        if isnan(lift)
-            lift = find(accelvec(t,outcome_frames)>accel_thresh*0.8);
-        end
-        
-        if isempty(lift)
-            lift=nan;
-        else
-            if plotfig
-                subplot(7,1,1)
-                text(outcome_frames(1)+lift(1),d4x(1,outcome_frames(1)+lift(1)),'L')
-                subplot(7,1,3)
-                text(outcome_frames(1)+lift(1),d4z(1,outcome_frames(1)+lift(1)),'L')
-                subplot(7,1,5)
-                text(outcome_frames(1)+lift(1),accelvec(t,outcome_frames(1)+lift(1)),'L')
-            end
-        end
-        reach = find(d4x(outcome_frames)>-5 & accelvec(t,outcome_frames)>accel_thresh);
-        if isempty(reach)
-            reach=nan;
-        else
-            if plotfig
-                subplot(7,1,1)
-                text(outcome_frames(1)+reach(1),d4x(1,outcome_frames(1)+reach(1)),'R')
-                subplot(7,1,3)
-                text(outcome_frames(1)+reach(1),d4z(1,outcome_frames(1)+reach(1)),'R')
-                subplot(7,1,5)
-                text(outcome_frames(1)+reach(1),accelvec(t,outcome_frames(1)+reach(1)),'R')
-            end
-        end
-        grasp = find(digdist3d(t,outcome_frames)<3);
-        if isempty(grasp)
-            grasp=nan;
-        else
-            if plotfig
-                subplot(7,1,4)
-                text(outcome_frames(1)+grasp(1),pz(1,outcome_frames(1)+grasp(1)),'G')
-            end
-        end
-        pelletgrasp = find(digpelletdist3d(t,outcome_frames)<3);
-        if isempty(pelletgrasp)
-            pelletgrasp=nan;
-        else
-            if plotfig
-                subplot(7,1,4)
-                text(outcome_frames(1)+pelletgrasp(1),pz(1,outcome_frames(1)+pelletgrasp(1)),'P')
-            end
-        end
-        digmouth = find(d2x(outcome_frames)>7 & d2y(outcome_frames)>173 & d2z(outcome_frames)>0.5);
-        if isempty(digmouth)
-            digmouth=nan;
-        else
-            if plotfig
-                subplot(7,1,3)
-                text(outcome_frames(1)+digmouth(1),d4z(1,outcome_frames(1)+digmouth(1)),'DM')
-            end
-        end
-        pelletmouth = find(pz(outcome_frames)>1);
-        if isempty(pelletmouth)
-            pelletmouth=nan;
-        else
-            if plotfig
-                subplot(7,1,3)
-                text(outcome_frames(1)+pelletmouth(1),d4z(1,outcome_frames(1)+pelletmouth(1)),'PM')
-                subplot(7,1,4)
-                text(outcome_frames(1)+pelletmouth(1),pz(1,outcome_frames(1)+pelletmouth(1)),'PM')
-            end
-        end
-    elseif expt_type==2
         lift = find(accelvec_sm(t,outcome_frames)>(accel_thresh));
         if isempty(lift)
             lift = find(accelvec(t,outcome_frames)>(accel_thresh*0.9));
@@ -305,7 +239,12 @@ for t = trial_range
                 text(outcome_frames(1),max(wz)*0.9,['Lift = ' num2str(outcome_frames(1)+ lift(1))])
             end
         end
-        reach = find(d4x(outcome_frames)>-5 & smoothdata(accelvec(t,outcome_frames),'movmean',smoothwin)>accel_thresh/2);
+        
+        if strcmp(neural_dir,'D:\localData\jcr70\ephys\jcr70_20191016_920um_g0')
+            reach = find(d4x(outcome_frames)>6 & smoothdata(accelvec(t,outcome_frames),'movmean',smoothwin)>accel_thresh/2);    
+        else
+            reach = find(d4x(outcome_frames)>-5 & smoothdata(accelvec(t,outcome_frames),'movmean',smoothwin)>accel_thresh/2);
+        end
         if isempty(reach)
             reach=nan;
         else
@@ -321,7 +260,7 @@ for t = trial_range
         
         % grasp
         dist3d = d_digdist3d(t,:);
-        dmax = find(dist3d==max(dist3d(outcome_frames(1):outcome_frames(1)+500)));
+        dmax = find(dist3d==max(dist3d(outcome_frames(1):outcome_frames(1)+300)));
         dmin = find(dist3d==min(dist3d(dmax:outcome_frames(end))));
         grasp_f_all_ind = find(dist3d(dmax:dmin)*100<-1);
         grasp_f = grasp_f_all_ind + dmax;
@@ -336,6 +275,17 @@ for t = trial_range
                 text(grasp(1),pz(1,grasp(1)),'G')
             end
         end
+%         if plotfig
+%             figure()
+%             hold on;
+%             plot(outcome_frames,dist3d(1,outcome_frames).*100);
+%             if lift
+%                 
+%                 plot(x,dist3d(1,x).*100);
+%             end
+%             title('Inter-digit Distance and Change in Distance')
+%             xlabel('time (ms)')
+%         end
         pelletgrasp = find(digpelletdist3d(t,outcome_frames)<=3);
         if isempty(pelletgrasp)
             pelletgrasp=nan;
@@ -348,7 +298,7 @@ for t = trial_range
             end
         end
         
-        digmouth = find((d4x(outcome_frames)>0 & d4x(outcome_frames)<5) & d4y(outcome_frames)>125 & d4z(outcome_frames)>13);
+        digmouth = find((d4x(outcome_frames)>5 & d4x(outcome_frames)<15) & d4y(outcome_frames)>170 & d4z(outcome_frames)>-1);
         if isempty(digmouth)
             digmouth=nan;
         else
@@ -357,7 +307,7 @@ for t = trial_range
                 text(outcome_frames(1)+digmouth(1),d4z(1,outcome_frames(1)+digmouth(1)),'DM')
             end
         end
-        pelletmouth = find((px(outcome_frames)>0 & px(outcome_frames)<4) & py(outcome_frames)>127 & pz(outcome_frames)>15);
+        pelletmouth = find((px(outcome_frames)>5 & px(outcome_frames)<15) & py(outcome_frames)>170 & pz(outcome_frames)>0);
         if isempty(pelletmouth)
             pelletmouth=nan;
         else
@@ -418,10 +368,12 @@ for t = trial_range
             plot(outcome_frames,dist3d(outcome_frames).*100);
             title('Change in Inter-digit Distance,grasp=star')
             xlabel('frame')
-            plot(grasp(1),dist3d(grasp(1))*100,'m*')
-            text(outcome_frames(1)+50,max(dist3d(outcome_frames))*100*0.9,['grasp = ' num2str(grasp(1))]);
+            if grasp>0
+                plot(grasp(1),dist3d(grasp(1))*100,'m*')
+                text(outcome_frames(1)+50,max(dist3d(outcome_frames))*100*0.9,['grasp = ' num2str(grasp(1))]);
+            end
         end
-    elseif expt_type==3
+    elseif expt_type==2 || expt_type==3
         lift = find(accelvec_sm(t,outcome_frames)>(accel_thresh));
         if isempty(lift)
             lift = find(accelvec(t,outcome_frames)>(accel_thresh*0.9));
@@ -700,7 +652,7 @@ for t = trial_range
   
     if plotfig
         % show grasping dynamics, inter digit distance and change
-        pause();
+%         pause();
         close all
     end
 end
@@ -779,17 +731,19 @@ end
 toc;
 
 % create lists of trial types
-LT_trial= sort([LT_40hz ; LT_10hz ; LT_4hz]);% list of all light trials
+LT_trial= sort([LT_40hz ; LT_10hz ; LT_4hz ; LT_single]);% list of all light trials
 LT_lift_trial = lift_flag(sort(LT_trial));% light trials with lift
 LT40_lift_trial = lift_flag(sort(LT_40hz));% 40hz light trials with lift
 LT10_lift_trial = lift_flag(sort(LT_10hz));% 10hz light trials with lift
 LT4_lift_trial = lift_flag(sort(LT_4hz));% 4hz light trials with lift
+LTsingle_lift_trial = lift_flag(sort(LT_single));% 4hz light trials with lift
 con_lift_trial = lift_flag(contrial);% control trials with lift
 
 LT_reach_trial = reach_flag(sort(LT_trial));% light trials with reach
 LT40_reach_trial = reach_flag(sort(LT_40hz));% 40hz light trial with reach
 LT10_reach_trial = reach_flag(sort(LT_10hz));% 10hz light trial with reach
 LT4_reach_trial = reach_flag(sort(LT_4hz));% 4hz light trial with reach
+LTsingle_reach_trial = reach_flag(sort(LT_single));% 4hz light trial with reach
 con_reach_trial = reach_flag(contrial);% control trial with reach
 
 % % trajectory difference
@@ -906,11 +860,10 @@ if saveData
     % 'create_trial_structure_jcr.m'
     save([save_dir '\event_ind.mat'], ...
         'con_lift_trial', 'con_reach_trial',...
-        'LT_trial','LT_lift_trial',...
-        'LT40_reach_trial','LT10_reach_trial',...
-        'LT40_reach_trial','LT10_reach_trial',...
-        'LT4_reach_trial','LT4_reach_trial',...
-        'LT4_reach_trial','LT4_reach_trial',...
+        'LT_trial','LT_lift_trial','LT_reach_trial',...
+        'LT40_lift_trial','LT10_reach_trial',...
+        'LT4_lift_trial','LT4_reach_trial',...
+        'LTsingle_lift_trial','LTsingle_reach_trial',...
         'reach_vel_con','reach_vel_LT40', ...
         'reach_rate_con','reach_rate_LT40', ...
         'reaction_time_con','reaction_time_LT40', ...
