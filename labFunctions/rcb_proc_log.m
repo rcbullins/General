@@ -1,8 +1,8 @@
-% jcr_proc_log.m
+% Step 2: Pre-processing Data.
 %
 % Processing of Motor Skill Reaching Task.
 %
-%
+% Previoulsy: jcr_proc_log.m
 %% General Path and Directory Setup
 ProjectName = 'ThalamusSP_Project';
 SUB = 'jcr70';
@@ -29,10 +29,7 @@ addpath(genpath(CODE_PROBES));
 % Workflow_Step1_BehaviorTracking
 
 %% Spike Sorting - Kilosort
-% script to run Kilosort Autosorter
-% for 1x64 probe - H3 from cambridge neurotech
-%edit D:\matlab\Kilosort-2.5\jeremy_chan_maps\runKS_1x64.m
-% edit D:\matlab\Kilosort-2.5\jeremy_chan_maps\runKS_4x16.m
+% 
 
 %% Get Event Timestamps - Create Trial Structure - Create Trial Outcome 
 % Extract experimental timestamps
@@ -121,7 +118,8 @@ for i=[1]%dir_list(5:end)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % 1) Extract the timestamps for every channel in .nidq file
     % stored in the local directory in a file '/ind.mat'
-   get_event_ind_rcb(neural_dir,site{i},channels,exp_type(i),save_dir);
+   %
+   % get_event_ind_rcb(neural_dir,site{i},channels,exp_type(i),save_dir);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -134,7 +132,7 @@ for i=[1]%dir_list(5:end)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % 3) Create trial outcome variables, lift, reach, grasp, handopen, 
     % supinate, at mouth, success or fail outcome, trajectories.
-  
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Experiment specific info - DO NOT CHANGE %
     % TO ALIGN LASER+CUE AND CONTROL TRIALS, align to pellet shift onset
