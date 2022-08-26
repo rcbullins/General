@@ -1,4 +1,4 @@
-function get_event_ind_rcb(neural_dir,recsite,channels,expt_type,save_dir)
+function get_event_ind_jcr(neural_dir,recsite,channels,expt_type,save_dir)
 
 % recsite=site{i};
 % neural_dir=neural_data_dirs{i};
@@ -74,20 +74,20 @@ else
         
         getSync=0;
         if getSync
-            % [ind_neg, data_tmp_neg] = get_event_ind(neural_data_dirs,fname,nchan,[ch6+1],[-0.001],1);
-            [ind] = get_event_ind_jcr2([neural_dir filesep recsite filesep],fname,nchan,[ch2+1 ch3+1 ch4+1 ch5+1 ch1+1],[0.001 0.001 0.001 0.001 0.001],0);
+            %     [ind_neg, data_tmp_neg] = get_event_ind(neural_data_dirs,fname,nchan,[ch6+1],[-0.001],1);
+            [ind] = get_event_ind([neural_dir filesep recsite filesep],fname,nchan,[ch2+1 ch3+1 ch4+1 ch5+1 ch1+1],[0.001 0.001 0.001 0.001 0.001],0);
             % sync pulse timestamps
             ind_pos = [1 1+find(diff(ind{5})>100e3/t_cal)]; % greater than 200ms
             sync = ind{5}(ind_pos);
         else
-            [ind] = get_event_ind_jcr2([neural_dir filesep recsite],fname,nchan,[ch2+1 ch3+1 ch4+1 ch5+1],[0.001 0.001 0.001 0.001],0);
+            [ind] = get_event_ind([neural_dir filesep recsite],fname,nchan,[ch2+1 ch3+1 ch4+1 ch5+1],[0.001 0.001 0.001 0.001],0);
             sync=[];
         end
         
         getLight=0;
         if getLight
             %     [ind_neg, data_tmp_neg] = get_event_ind(neural_data_dirs,fname,nchan,[ch6+1],[-0.001],1);
-            [ind_neg] = get_event_ind_jcr2([neural_dir filesep recsite],fname,nchan,[ch6+1],[-0.001],1);
+            [ind_neg] = get_event_ind([neural_dir filesep recsite],fname,nchan,[ch6+1],[-0.001],1);
         else
             light=[];
         end
@@ -111,12 +111,10 @@ else
         ind_pos = [1 1+find(diff(ind{4})>1e4/t_cal)]; % greater than 1s
         tone = ind{4}(ind_pos);
         
-        if getLight % Reagan add if statement here
         % masking led light pulse timestamps
         ind_neg_neg = [1 1+find(diff(ind_neg{1})>1e4/t_cal)]; % greater than 1s
         light = ind_neg{1}(ind_neg_neg);
-        end
-
+        
         disp(['trial_start: ' num2str(length(trial_start))]);
         disp(['table_start: ' num2str(length(table_start))]);
         disp(['laser: ' num2str(length(laser))]);
@@ -143,12 +141,12 @@ else
         getSync=1;
         if getSync
             %     [ind_neg, data_tmp_neg] = get_event_ind(neural_data_dirs,fname,nchan,[ch6+1],[-0.001],1);
-            [ind] = get_event_ind_jcr2([neural_dir filesep recsite],fname(end,:),nchan,[ch2+1 ch3+1 ch4+1 ch5+1 ch1+1],[0.001 0.001 0.001 0.001 0.001],0);
+            [ind] = get_event_ind([neural_dir filesep recsite],fname(end,:),nchan,[ch2+1 ch3+1 ch4+1 ch5+1 ch1+1],[0.001 0.001 0.001 0.001 0.001],0);
             % sync pulse timestamps
             ind_pos = [1 1+find(diff(ind{5})>2e2)]; % greater than 200ms
             sync = ind{5}(ind_pos);
         else
-            [ind] = get_event_ind_jcr2([neural_dir filesep recsite],fname(end,:),nchan,[ch2+1 ch3+1 ch4+1 ch5+1],[0.001 0.001 0.001 0.001],0);
+            [ind] = get_event_ind([neural_dir filesep recsite],fname(end,:),nchan,[ch2+1 ch3+1 ch4+1 ch5+1],[0.001 0.001 0.001 0.001],0);
             sync=[];
         end
         
@@ -193,7 +191,7 @@ else
         
         getSync=0; % no sync pulses to get
         
-        [ind] = get_event_ind_jcr2([neural_dir filesep recsite],fname(end,:),nchan,[ch1+1 ch2+1 ch3+1],[0.001 0.001 0.001],0);
+        [ind] = get_event_ind([neural_dir filesep recsite],fname(end,:),nchan,[ch1+1 ch2+1 ch3+1],[0.001 0.001 0.001],0);
         sync=[];
         
         %     [ind] = get_event_ind([neural_dir filesep recsite],fname(end,:),nchan,[65],[0.001],0);
@@ -236,7 +234,7 @@ else
     
     %%%%%%%%%%%
     % Plot data
-    plotFig=1;
+    plotFig=0;
     if plotFig
         close all;
         figure();
@@ -285,16 +283,16 @@ else
         
         %     linkaxesInFigure('x');
     end
-end
-
-saveData=1;
-if saveData
-    saveName = [save_dir filesep 'event_ind'];
-    if expt_type==1
-        save(saveName,'trial_start','sync','table_start','laser','laser_start','light','tone')
-    elseif expt_type==2
-        save(saveName,'trial_start','sync','table_start','laser','laser_start','laser_gate','laser_gate_start')
-    elseif expt_type==3
-        save(saveName,'trial_start','table_start','laser','laser_start')
+    
+    saveData=1;
+    if saveData
+        saveName = [save_dir filesep 'event_ind'];
+        if expt_type==1
+            save(saveName,'trial_start','sync','table_start','laser','laser_start','light','tone')
+        elseif expt_type==2
+            save(saveName,'trial_start','sync','table_start','laser','laser_start','laser_gate','laser_gate_start')
+        elseif expt_type==3
+            save(saveName,'trial_start','table_start','laser','laser_start')
+        end
     end
 end

@@ -1,32 +1,6 @@
-% Step 3: Pre-processing Neural Data in to Struct.
+% Step 3: Pre-processing Neural and Behavior Data in to Struct.
 %
 % Processing of Motor Skill Reaching Task.
-%
-% Previoulsy: jcr_proc_log.m
-%% General Path and Directory Setup
-ProjectName = 'ThalamusSP_Project';
-SUB = 'jcr70';
-EXPER_SESSION = '20191016';
-
-BASEPATH = 'C:\Users\bullinsr\OneDrive - University of North Carolina at Chapel Hill\Hantman_Lab\';
-PROJECT  = [BASEPATH ProjectName '\'];
-
-CODE_SP = [PROJECT 'Code\'];
-CODE_GENERAL = [BASEPATH 'Code\General\'];
-CODE_CALIB = [PROJECT 'Data\Calib_Results_stereo.mat'];
-CODE_BRITTON = [BASEPATH 'Code\Packages\britton_code\code\'];
-CODE_BRITTON_PLOT = [BASEPATH 'Code\Packages\britton_code\other_code'];
-CODE_PROBES = [BASEPATH 'Code\Packages\Probes\'];
-JAABA_OUTPUT = [PROJECT 'Data_Analyzed\' SUB '\JAABA_Output\' SUB '_' EXPER_SESSION '_JAABA_Output.mat'];
-
-addpath(genpath(CODE_GENERAL));
-addpath(CODE_CALIB);
-addpath(genpath(CODE_BRITTON));
-addpath(genpath(CODE_BRITTON_PLOT));
-addpath(genpath(CODE_PROBES));
-
-%% Get Event Timestamps - Create Trial Structure - Create Trial Outcome 
-% Extract experimental timestamps
 % 1) extract pulse timestamps from recording file (eg .nidq or .imec)
 %%% camera triggers, lights, lasers, tables, tones, etc...
 % 2) create variables that describe the experiment trial structure
@@ -35,16 +9,40 @@ addpath(genpath(CODE_PROBES));
 %%% use/exclude trial flag, trial time, success/fail/, lift, reach,
 %%% reaction time, reach velocity,
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Experiment directory list
-% video directories
-vid_data_dirs = {'C:\Users\bullinsr\OneDrive - University of North Carolina at Chapel Hill\Hantman_Lab\ThalamusSP_Project\Data\jcr70\video\20191016'};
+% Previoulsy: jcr_proc_log.m or rcb_proc_log
+%% Setup Project Names
+ProjectName = 'ThalamusSP_Project';
+SUB = 'jcr70';
+EXPER_SESSION = '20191016';
 
-% corresponding .nidq event ind directories
-neural_data_dirs = {'C:\Users\bullinsr\OneDrive - University of North Carolina at Chapel Hill\Hantman_Lab\ThalamusSP_Project\Data\jcr70\ephys\jcr70_20191016_920um_g0'};
+%% Add Pathways
+BASEPATH = 'C:\Users\bullinsr\OneDrive - University of North Carolina at Chapel Hill\Hantman_Lab\';
+PROJECT  = [BASEPATH ProjectName '\'];
+CALIB = [PROJECT 'Data\Calib_Results_stereo.mat'];
 
-% JAABA Dir
-JAABA_dirs = {'C:\Users\bullinsr\OneDrive - University of North Carolina at Chapel Hill\Hantman_Lab\ThalamusSP_Project\Data_Analyzed\jcr70\JAABA_Output\jcr70_20191016_JAABA_Output.mat'};
+CODE_SP = [PROJECT 'Code\'];
+CODE_GENERAL = [BASEPATH 'Code\General\'];
+CODE_CALIB = [PROJECT 'Data\Calib_Results_stereo.mat'];
+CODE_BRITTON = [BASEPATH 'Code\Packages\britton_code\code\'];
+CODE_BRITTON_PLOT = [BASEPATH 'Code\Packages\britton_code\other_code'];
+CODE_PROBES = [BASEPATH 'Code\Packages\Probes\'];
+SPIKE_GLX = [BASEPATH 'Code\Packages\SpikeGLX_Datafile_Tools\'];
+
+addpath(genpath(CODE_GENERAL));
+addpath(CODE_CALIB);
+addpath(genpath(CODE_BRITTON));
+addpath(genpath(CODE_BRITTON_PLOT));
+addpath(genpath(CODE_PROBES));
+addpath(genpath(SPIKE_GLX));
+%% Set Directories of Experimental List
+% Video directories
+VID_DATA = {[PROJECT 'Data\jcr70\video\20191016']};
+
+% Corresponding .nidq event ind directories
+NEURAL_DATA = {[PROJECT 'Data\jcr70\ephys\jcr70_20191016_920um_g0']};
+
+% Corresponding JAABA Dir
+JAABA_OUTPUT = {[PROJECT 'Data_Analyzed\jcr70\JAABA_Output\jcr70_20191016_JAABA_Output.mat']};
 
 % subfolder location of the nidq meta file, which states the number of channels
 site = {'cortex'};
@@ -53,11 +51,8 @@ site = {'cortex'};
 % 1==jcr jeremy rig, 2==jay janelia new rig, 3==jay janelia old rig
 exp_type = [1];
 
-% dir_list = [1:2 5 7 8:numel(neural_data_dirs)]; % list of files to process
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SESSION TIMESTAMPS
-
+dir_list = 1; %[1:2 5 7 8:numel(neural_data_dirs)]; % list of files to process
+%% Define Channels in nidq
 % JCR Experiments, Jeremy Cohen
 % timestamps on Jeremy's janelia rig in .nidq file
 % Get data from .nidq file channel #
@@ -87,23 +82,17 @@ ch2=65;% table_start/cue pulse timestamps
 ch3=67;% laser pulse timestamps
 ch4=66;% laser gate, for grab detector trials
 jay_pulse_channels_2 = [ch1 ch2 ch3 ch4];
-
+%% Loop through each experiment in list
 smoothwin = 25; % smoothing window (for plotting purposes)
 tic;
 % For each session
 for i=[1]%dir_list(5:end)
     % set rootdir, neural data, and video data directories
-        rootdir='C:\Users\bullinsr\OneDrive - University of North Carolina at Chapel Hill\Hantman_Lab\ThalamusSP_Project\';
-        neural_dir = neural_data_dirs{i};
-        vid_dir = vid_data_dirs{i};
-        vid_trk_dir = [vid_dir 'tracked\']; 
-        JAABA_dir = JAABA_dirs{i};
-        save_dir = neural_dir;
-    
-    % stereo calibration file for video analysis
-        % jeremy rig - janelia experiments
-        calib_file = [PROJECT 'Data\Calib_Results_stereo.mat'];
-        calib_dir = calib_file;
+        this_NEURAL = NEURAL_DATA{i};
+        this_VID = VID_DATA{i};
+        this_TRK = [this_VID 'tracked\']; 
+        this_JAABA = JAABA_OUTPUT{i};
+        this_SAVE = this_NEURAL;
     
     % set channels for event processing
     if exp_type(i)==1
@@ -113,19 +102,18 @@ for i=[1]%dir_list(5:end)
     elseif exp_type(i)==3
         channels=jay_pulse_channels_2;
     end
-    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % 1) Extract the timestamps for every channel in .nidq file
     % stored in the local directory in a file '/ind.mat'
    
-   % get_event_ind_rcb(neural_dir,site{i},channels,exp_type(i),save_dir);
+     get_event_ind_rcb(this_NEURAL,site{i},channels,exp_type(i),this_SAVE);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % 2) Set up trial array and categorize trials into trial type
     % append new variables to the event ind.mat file
-   %  create_trial_structure_rcb(rootdir,neural_dir,vid_trk_dir,save_dir,...
-   %      site{i},exp_type(i))
+     create_trial_structure_rcb(PROJECT,this_NEURAL,this_TRK,this_SAVE,...
+         site{i},exp_type(i))
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -154,16 +142,27 @@ for i=[1]%dir_list(5:end)
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     plotfig=0; % plot trial trajectories during processing
- %   create_trial_outcome_rcb(rootdir,neural_dir,vid_dir,save_dir,...
- %        calib_dir,exp_type(i),smoothwin,frames,LT_shift,CON_shift,plotfig)
+    create_trial_outcome_rcb(PROJECT,this_NEURAL,this_VID,this_SAVE,...
+         CALIB,exp_type(i),smoothwin,frames,LT_shift,CON_shift,plotfig)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+    % 4) Get LFP chunks and add to struct
+    fname = ls([this_NEURAL filesep site{i} filesep '*.nidq.bin*']);
+    RAW_EPHYS_FILE = ([this_NEURAL filesep site{i} filesep fname]);
+
+    lfp = getLFPfromBin(RAW_EPHYS_FILE,BASEPATH, SUB, EXPER_SESSION);
+    saveData = 1;
+    if saveData
+        % note some variables not listed here may be previously saved in
+        % 'create_trial_structure_jcr.m'
+        save([this_SAVE '\lfp.mat'], ...
+          'lfp','-v7.3');
+    end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % 4) create the final data structure with all processed data
+    % 5) create the final data structure with all processed data
     % neural data and kinematics combined.
     new_or_append = 0; %==1 update/append to current file, ==0 create new file
     if new_or_append==0
-        event_ind_dir = neural_data_dirs{i};
+        event_ind_dir = NEURAL_DATA{i};
         ctx=1; % 1==process data, 0==do not process
         thal=0; % 1==process data, 0==do not process
         create_processed_data_struct_rcb(event_ind_dir,JAABA_dir,ctx,thal)
@@ -176,46 +175,9 @@ end
 b=toc;
 disp(b);
 
-
 %% PLOT - Individual Trial Position Data
 t_win=1:4000; % time window in ms
 smoothwin = 25; % 25 frames, 50ms
-event_dir = [neural_data_dirs{i} filesep 'event_ind']; % event_ind.m location
+event_dir = [NEURAL_DATA{i} filesep 'event_ind']; % event_ind.m location
 trial=1:5;
 plot_trial_rcb(event_dir,trial,t_win,smoothwin,exp_type(i));
-
-
-%% Pre-process neural data and align to behavior - OLD
-% Now we create a data_structure for each experiment that combines
-% event_ind.mat and the spikes from each recording site
-% this is step 4) in the pre-processing section above. 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% For each experiment, there may be a 'cortex' and/or 'thalamus' recording
-% with specific electrodes and recording configurations, so we process each
-% recording site separately.
-% Set input variables, and set the flag for the variables cortex and thalamus
-% to (1==process, 0==dont process)
-
-% % jcr76_20200616 - cortex and thalamus
-% savedir = 'D:\localResults\thalamus_opto_reach\dualthalctx_ChR2\jcr76_20200616_preprocessed';
-% dir_vid = 'D:\localData\jcr76\video\20200616\tracked';
-% dir_ephys = 'D:\localData\jcr76\ephys\jcr76_20200616_4800_900um_g0';
-% mouse_type = 'rorb';
-% calib_file = 'D:\localData\camera_calibration\20191030\Calib_Results_stereo';
-% n_frames = 2200;
-% fs_vid = 500;
-% fs_ephys = 25000;
-% cue_offset_c = 950; % cue offset for control trials
-% cue_offset_l = 500; % cue offset for laser trials
-% cortex = 1; % 1==cortex data
-% thalamus = 1; % 1==thalamus data
-% jcr_preprocess_ephys(dir_vid,dir_ephys,calib_file,savedir,...
-%     n_frames,mouse_type,...
-%     fs_vid,fs_ephys,...
-%     cue_offset_c,cue_offset_l,cortex,thalamus);
-% 
-
-
-
-
-

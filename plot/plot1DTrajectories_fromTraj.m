@@ -1,4 +1,4 @@
-function [] = plot1DTrajectories(traj, varargin)
+function [] = plot1DTrajectories_fromTraj(traj, varargin)
 %% Behavioral - Motor reaching kinematics analysis script
 % PURPOSE
 %   Plot 1D trajectories of animal movement

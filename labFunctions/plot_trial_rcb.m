@@ -50,7 +50,7 @@ for t=1:length(t_range)
     
     
     f1=figure(1);
-    set(gcf,'Position',[1800 800 1600 500]);
+    set(gcf,'Position',[200 50 1600 500]);
     d2x = trajectory_struct.dig2_x(trial,:)';
     d2y = trajectory_struct.dig2_y(trial,:)';
     d2z = trajectory_struct.dig2_z(trial,:)';
@@ -120,7 +120,7 @@ for t=1:length(t_range)
     
     
     f2=figure(2);
-    set(gcf,'Position',[1800 214 1600 500]);
+    set(gcf,'Position',[200 400 1600 500]);
     
     % Supination
     colord=copper(length(t_win));
@@ -337,8 +337,3 @@ plot(rm2,'color',colors(2,:));
 plot(rm3,'color',colors(3,:)); 
 plot(rm4,'color',colors(4,:)); 
 plot(rm5,'color',colors(5,:));
-
-
-
-
-

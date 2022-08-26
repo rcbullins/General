@@ -1,4 +1,4 @@
-function [] = plot3DTrajectories(traj, varargin)
+function [] = plot3DTrajectories_fromTraj(traj, varargin)
 % PURPOSE
 %   Plot example trials of the data in 3D space.
 % INPUT

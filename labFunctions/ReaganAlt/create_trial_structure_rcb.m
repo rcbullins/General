@@ -1,27 +1,32 @@
-function create_trial_structure_rcb(rootdir,neural_dir,wasabi_vid,save_dir,...
+function create_trial_structure_rcb(ROOT,NEURAL,TRK,SAVE,...
     recsite,expt_type)
-
+%%
+% INPUT
+%       ROOT: Project directory (String)
+%       NEURAL: directory with neural data (String)
+%       TRK: Directory with tracked APT output (String)
+%       recsite: Brain region recording from (String)
+%       expt_type: Which recording setup it was done on (Integer)
+%                   Jeremy = 1, Jay new = 2, Jay old = 3
+%       SAVE: Save directory (String)
+% OUTPUT
+%       event_ind: adds variables to preexisting
+% DEPENDENCIES
+%       event_ind: struct made from get_event_ind_rcb
+%       nidq.bin: file with recording information for cue, table, laser,
+%                 etc
+%       nidq.meta: file with recording info, such as sampling rate, etc
+%%
 plotFig=0;
 saveData=1;
 %
-% neural_data_dir = neural_data_dirs{i}
-% vid_data_dir = vid_data_dirs{i}
-% expt_type = exp_type(i)
-% recsite = site{i}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % load the timestamps and create session trial labels
-clear con_trial LT_only LT_single LT_4hz LT_10hz LT_20hz LT_40hz
-clear sync table_start trial_start laser laser_start tone light
-clear laser_gate laser_gate_start trial_array
-
-% load([neural_data_dir '/event_ind.mat']);
-load([neural_dir filesep 'event_ind.mat']);
+load([NEURAL filesep 'event_ind.mat']);
 
 % get recording sample rate
-% mname = ls([neural_data_dir filesep recsite '\*.nidq.meta']);
-mname = ls([neural_dir filesep recsite '\*.nidq.meta']);
-% metafile = [neural_data_dir filesep recsite filesep mname];
-metafile = [neural_dir filesep recsite filesep mname(end,:)];
+mname = ls([NEURAL filesep recsite '\*.nidq.meta']);
+metafile = [NEURAL filesep recsite filesep mname(end,:)];
 meta_text = fileread([metafile]);
 [foo bar] = regexp(meta_text,'niSampRate=\d');
 mystr = meta_text(bar+(0:5));
@@ -84,9 +89,9 @@ if plotFig
     
     %     linkaxesInFigure('x');
 end
-
-frontList = dir(fullfile([wasabi_vid '\tracked\'], '*front*.trk'));
-sideList = dir(fullfile([wasabi_vid '\tracked\'], '*side*.trk'));
+%% 
+frontList = dir(fullfile([TRK '\tracked\'], '*front*.trk'));
+sideList = dir(fullfile([TRK '\tracked\'], '*side*.trk'));
 disp(['front_vid: ' num2str(numel(frontList)) ' side_vid: ' num2str(numel(sideList)) ', trial_start: ' num2str(length(trial_start))])
 
 if numel(frontList) ~= numel(sideList) | numel(frontList) ~= length(trial_start)
@@ -94,16 +99,16 @@ if numel(frontList) ~= numel(sideList) | numel(frontList) ~= length(trial_start)
 else
     disp(['Number of trial_start is equal to number of videos :) '])
 end
-if strcmp(neural_dir,[rootdir '\jcr79\ephys\jcr79_20200930_4500_915um_2_g0'])
+if strcmp(NEURAL,[ROOT '\jcr79\ephys\jcr79_20200930_4500_915um_2_g0'])
     vid_offset=28;
     disp(['front_vid: ' num2str(numel(frontList)-vid_offset) ' side_vid: ' num2str(numel(sideList)-vid_offset) ', trial_start: ' num2str(length(trial_start))])
 end
-if strcmp(neural_dir,[rootdir '\jcr82\ephys\jcr82_20210101_4400um_g0'])
+if strcmp(NEURAL,[ROOT '\jcr82\ephys\jcr82_20210101_4400um_g0'])
     vid_offset=-3;
     disp(['front_vid: ' num2str(numel(frontList)-vid_offset) ' side_vid: ' num2str(numel(sideList)-vid_offset) ', trial_start: ' num2str(length(trial_start))])
 end
-disp([neural_dir]);
-disp([wasabi_vid]);
+disp([NEURAL]);
+disp([TRK]);
 
 
 % % create 6 column array for all trials
@@ -119,7 +124,7 @@ trial_array_var={'use/exclude trial flag' 'table cue start' 'laser start' 'numbe
 
 for t = 1:length(trial_start)
     if expt_type==1
-        if strcmp(neural_dir,[rootdir '\jcr82\ephys\jcr82_20210101_4400um_g0']) && (t==103 | t==104 | t==105)
+        if strcmp(NEURAL,[ROOT '\jcr82\ephys\jcr82_20210101_4400um_g0']) && (t==103 | t==104 | t==105)
             trial_array(t,1) = 0; % 0/1 flag to use trial
         else
             trial_array(t,1) = 1; % 0/1 flag to use trial
@@ -232,11 +237,8 @@ elseif expt_type==3
 end
 
 if saveData
-%     save([save_dir filesep 'event_ind.mat'],'trial_array','con_trial','LT_only',...
-%         'LT_4hz','LT_10hz','LT_40hz','LT_gate','-append');
-     
-    save([save_dir filesep 'event_ind.mat'],'trial_array','con_trial',...
+    save([SAVE filesep 'event_ind.mat'],'trial_array','con_trial',...
         'LT_only','LT_single','LT_4hz','LT_10hz','LT_40hz','LT_gate','-append');
 end
 
-disp([neural_dir ' - create trial structure complete'])
+disp([NEURAL ' - create trial structure complete'])

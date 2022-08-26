@@ -1,9 +1,20 @@
-function create_processed_data_struct(event_ind_dir,ctx,thal)
-
+function create_processed_data_struct_rcb(EVENT_IND,JAABA,ctx,thal)
 % script has two sections:
 % 1)process event_indices
 % 2) process the neural data
+% INPUT
+%       EVENT_IND: directory of event ind.mat (String)
+%       JAABA: dirextory of JAABA ouput (String)
+%       ctx: boolean (process or not, 1 or 0) for cortex
+%       thal: boolean (process or not, 1 or 0) for thalamus
+% OUTPUT
+%       data_struct_sub_expersession_..... (mat file with complete struct)
+% DEPENDENCIES
+%       event_ind: struct made from get_event_ind_rcb
+%       nidq.meta: file with recording info, such as sampling rate, etc
+%       Output form kilosort, spike sorted with Phy
 
+%% 
 % find the meta file with the event indices.
 % whisper system sampled timestamps occur at 25 khz, but should check
 % timestamp meta file.
@@ -11,15 +22,15 @@ samp_freq = 25; % sampling frequency for the timestamps in the event_indices fil
 
 
 %% Process event indices
-load([event_ind_dir filesep 'event_ind.mat'])
+load([EVENT_IND filesep 'event_ind.mat'])
 
-neural_dir_ctx = [event_ind_dir filesep 'cortex'];
-neural_dir_thal = [event_ind_dir filesep 'thalamus'];
+neural_dir_ctx = [EVENT_IND filesep 'cortex'];
+neural_dir_thal = [EVENT_IND filesep 'thalamus'];
 
 % experiment name for saving
 mname = ls([neural_dir_ctx '\*.nidq.meta']);
 fname=mname(1:end-10);
-save_file = [event_ind_dir filesep 'data_struct_' fname];
+save_file = [EVENT_IND filesep 'data_struct_' fname];
 
 % create data struct
 data_struct=struct;
@@ -124,8 +135,9 @@ data_struct.trajectories=trajectory_struct;
 clear trajectory_struct trial_outcome_struct
 
 %% Include JAABA output
-jab_file = dir(fullfile([vid_dir filesep 'jaaba'],'*.mat'))
-load([vid_dir filesep 'jaaba' filesep jab_file.name])
+%jab_file = dir(fullfile([vid_dir filesep 'JAABA'],'*.mat'))
+%load([vid_dir filesep 'JAABA' filesep jab_file.name])
+load(JAABA)
 
 % get JAABA lift, handopen, and grab times from first sequence 'GS00'
 % get JAAABA supinate, atmouth, and chew times from last sequence success
