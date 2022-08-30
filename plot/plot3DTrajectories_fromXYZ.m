@@ -1,7 +1,12 @@
 function [] = plot3DTrajectories_fromXYZ(x,y,z,pellet,liftFrames, handOpenFrames,grabFrames,atMouthFrames,varargin)
 % PURPOSE
-%   Plot all trials in faded color, and then average in bold. Start at
-%   Lift.
+%   Plot all numper of sample trials in grey, and mean in red overlayed.
+%   Plot mean jaaba behavior for all trials along mean trajectory - this is
+%   chosen based off average frame away from lift. Trajectory starts at
+%   lift.
+% 
+%   Will either plot sample trials with mean overlayed, or only mean by
+%   itself.
 % INPUT
 %   XYZ information of object
 %   pellet x,y,z information

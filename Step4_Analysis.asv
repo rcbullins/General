@@ -121,24 +121,13 @@ CaptureFigVid([-20,10;-110,10;-190,80;-290,10;-380,10],FileNameVideo,OptionZ);
 [coeff,score,latent] = pca(avg_M1_z_score','NumComponents',3);
 trialFrameStart = find(trial_time == 0);
 reachFrames = lift_mean_frame+trialFrameStart:mouth_mean_frame+trialFrameStart;
-behaviorFrames = trialFrameStart:length(trial_time);
+behaviorFrames = trialFrameStart:trialFrameStart+5000;
 PlotFrameAfter = 1000;
  
 figure;
-sgtitle('Neural Trajectory: PC Space')
-subplot(1,2,1);
 plot3(score(behaviorFrames,1),score(behaviorFrames,2),score(behaviorFrames,3));
 hold on;
 plot3(score(reachFrames,1),score(reachFrames,2),score(reachFrames,3),'r');
-scatter3(score(reachFrames(1),1),score(reachFrames(1),2),score(reachFrames(1),3),'o','filled','MarkerEdgeColor',ColorPlt(1,:),'MarkerFaceColor', ColorPlt(1,:));
-txt_lift = 'Lift';
-text(score(reachFrames(1),1),score(reachFrames(1),2),score(reachFrames(1),3),txt_lift);
-subplot(1,2,2);
-plot3(score(reachFrames,1),score(reachFrames,2),score(reachFrames,3),'r');
-hold on;
-scatter3(score(reachFrames(1),1),score(reachFrames(1),2),score(reachFrames(1),3),'o','filled','MarkerEdgeColor',ColorPlt(1,:),'MarkerFaceColor', ColorPlt(1,:));
-txt_lift = 'Lift';
-text(score(reachFrames(1),1),score(reachFrames(1),2),score(reachFrames(1),3),txt_lift);
-axis off;
-box off;
+
+
 %% Spiking Characteristics
