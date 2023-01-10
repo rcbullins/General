@@ -1,4 +1,4 @@
-function [traj, traj_smooth] = getMovTraj(data_dir, CODE_CALIB,trajFile,varargin)
+function [traj, traj_smooth] = getMovTraj(data_dir, CODE_CALIB,varargin)
 % PURPOSE
 %   If the movement trajectory file does not exist for this bodypart, make
 %   the file. Load the trajectory and save.

@@ -62,6 +62,11 @@ M1_z_score = {};
     for itrial = 1:length(data_struct.trials)
         M1_z_score{itrial} = data_struct.trials(itrial).M1_z_score;
     end
+% Load in all spikes 
+spikes = {};
+    for itrial = 1:length(data_struct.trials)
+        spikes{itrial} = data_struct.trials(itrial).M1_tstamps;
+    end
 trial_time = data_struct.trials.time;
 %% Reaching Trajectories
 % Correct for pellet position - if multiple days...
@@ -73,14 +78,20 @@ sgtitle("1D Trajectories: Lift Aligned");
 subplot(1,3,1);
 plot1DTrajectories_fromXYZ(dig2.x, liftFrames);
 title("X Position")
+box off;
+axis off;
 % Plot Y
 subplot(1,3,2);
 plot1DTrajectories_fromXYZ(dig2.y, liftFrames) %,'SampleSize', 50);
 title("Y Position");
+box off;
+axis off;
 % Plot Z
 subplot(1,3,3);
 plot1DTrajectories_fromXYZ(dig2.z, liftFrames);%,'SampleSize',50);
 title("Z Position");
+box off;
+axis off;
 %%%   Plot 3D trajectories   %%% WORK HERE _ HOW TO GET POINT AVG REACH
 % LiftFrames will be the first plot point
 figure;
@@ -121,9 +132,10 @@ CaptureFigVid([-20,10;-110,10;-190,80;-290,10;-380,10],FileNameVideo,OptionZ);
 [coeff,score,latent] = pca(avg_M1_z_score','NumComponents',3);
 trialFrameStart = find(trial_time == 0);
 reachFrames = lift_mean_frame+trialFrameStart:mouth_mean_frame+trialFrameStart;
+
 behaviorFrames = trialFrameStart:length(trial_time);
 PlotFrameAfter = 1000;
- 
+% Plot PCA in 3 dimensions and label start of lift movement
 figure;
 sgtitle('Neural Trajectory: PC Space')
 subplot(1,2,1);
@@ -141,4 +153,107 @@ txt_lift = 'Lift';
 text(score(reachFrames(1),1),score(reachFrames(1),2),score(reachFrames(1),3),txt_lift);
 axis off;
 box off;
+% Plot first three PCA each by themselves over time (plot lift)
+figure;
+subplot(1,3,1);
+plot(score(behaviorFrames,1));
+hold on;
+x_pt = find(score(behaviorFrames,1) == score(reachFrames(1),1));
+scatter(x_pt, score(reachFrames(1),1),'o','filled','MarkerEdgeColor',ColorPlt(1,:),'MarkerFaceColor', ColorPlt(1,:));
+title("PC 1");
+box off;
+subplot(1,3,2);
+plot(score(behaviorFrames,2))
+hold on;
+x_pt = find(score(behaviorFrames,2) == score(reachFrames(1),2));
+scatter(x_pt, score(reachFrames(1),2),'o','filled','MarkerEdgeColor',ColorPlt(1,:),'MarkerFaceColor', ColorPlt(1,:));
+title("PC 2");
+box off;
+subplot(1,3,3);
+plot(score(behaviorFrames,3));
+hold on;
+x_pt = find(score(behaviorFrames,3) == score(reachFrames(1),3));
+scatter(x_pt, score(reachFrames(1),3),'o','filled','MarkerEdgeColor',ColorPlt(1,:),'MarkerFaceColor', ColorPlt(1,:));
+title("PC 3");
+box off;
 %% Spiking Characteristics
+numFramesPlot = 1501;
+num_neurons = size(avg_M1_z_score,1);
+% heat plot: each row a neuron x time (average z score)
+figure;
+% lift align all trials and all neurons
+lift_align_neurons = {};
+%for each trial
+for itrial = 1:size(M1_z_score,2)
+    this_trial_neurons = M1_z_score{itrial};
+    if isnan(liftFrames(1,itrial))== 1
+        lift_align_neurons{itrial} = [];
+        continue;
+    end
+    this_aligned = this_trial_neurons(:, trialFrameStart+liftFrames(1,itrial) - 500:trialFrameStart+liftFrames(1,itrial)+1000);
+    lift_align_neurons{itrial} = this_aligned;
+end
+
+% Average over all trials
+lift_align_activity = zeros(num_neurons,numFramesPlot);
+for ineuron = 1:num_neurons
+    neuron_all = zeros(size(lift_align_neurons,2),numFramesPlot);
+    for itrial = 1:size(M1_z_score,2)
+        if isempty(lift_align_neurons{itrial})== 1
+            neuron_all(itrial,:) = zeros(1,numFramesPlot);
+            continue
+        end
+        neuron_all(itrial,:) = lift_align_neurons{itrial}(ineuron,:);
+    end
+    lift_align_activity(ineuron,:) = mean(neuron_all);
+end
+
+% Make graph
+figure;
+imagesc(lift_align_activity)
+
+%% heatmap Raster part 2, not z scored
+
+% lift align all trials and all neurons
+lift_align_neurons = {};
+%for each trial
+for itrial = 1:size(M1_z_score,2)
+    this_trial_neurons = spikes{itrial};
+    if isnan(liftFrames(1,itrial))== 1
+        lift_align_neurons{itrial} = [];
+        continue;
+    end
+    this_aligned = this_trial_neurons(:, trialFrameStart+liftFrames(1,itrial) - 500:trialFrameStart+liftFrames(1,itrial)+1000);
+    lift_align_neurons{itrial} = this_aligned;
+end
+
+% Average over all trials
+lift_align_activity = zeros(num_neurons,numFramesPlot);
+for ineuron = 1:num_neurons
+    neuron_all = zeros(size(lift_align_neurons,2),numFramesPlot);
+    for itrial = 1:size(M1_z_score,2)
+        if isempty(lift_align_neurons{itrial})== 1
+            neuron_all(itrial,:) = zeros(1,numFramesPlot);
+            continue
+        end
+        neuron_all(itrial,:) = lift_align_neurons{itrial}(ineuron,:);
+    end
+    lift_align_activity(ineuron,:) = mean(neuron_all);
+end
+
+% Make graph
+figure;
+imagesc(lift_align_activity)
+%% Raster with avg over top
+
+figure;
+for ineuron = 4%
+    %subplot(5,8,ineuron)
+    for itrial = 1:size(spikes,2)
+        idx_spikes = find(spikes{itrial}(ineuron,:)>=1);
+
+        scatter(trial_time(idx_spikes),ones(1,length(idx_spikes))*itrial,'.','Color','k')
+        hold on
+    end
+end
+

@@ -33,42 +33,71 @@ function [movEndFrames, score_total_idx] = getMovEndFrame(trialScoreThr,traj, tr
 %% Input Parser
 p = inputParser;
 addParameter(p,'plotSanity',0,@isnumeric);
+addParameter(p,'allTrials',0,@isnumeric);
 parse(p,varargin{:});
 plotSanity = p.Results.plotSanity;
+find_allTrials = p.Results.allTrials;
 %%
-idx_specified = [nan];
-for itrialScore = 1:length(trialScoreThr)
-    thisScore_idx = find(trialScores == trialScoreThr(itrialScore));
-    idx_specified = [idx_specified thisScore_idx];
-end
-if length(trialScoreThr) > 1
-    idx_specified(1) = [];
-end
-% Find where the block condition is met (baseline vs stimulation)
-[~,block_score_idx,~] = intersect(trialBlock,idx_specified);
-score_total_idx = trialBlock(block_score_idx);
-movEndFrames = NaN(1,length(score_total_idx));
-if plotSanity
-    figure;
-end
-for itrial = 1:length(score_total_idx)
-    thisTraj = traj(score_total_idx(itrial),:,:);
-    z = squeeze(traj(score_total_idx(itrial),3,:));
-    z_smooth = smoothdata(z,'movmedian',60);
-    z_deriv = diff(z_smooth);
-    z_deriv = smoothdata(z_deriv,'movmedian',60);
-    max_z_deriv = max(z_deriv);
-    thr = max_z_deriv*.1;
-    overthr_idx = find(z_deriv <= thr);
-    attenuated_idx = overthr_idx(find(overthr_idx > movStartFrames(1,itrial)));
-    %             overbaseThr_idx = find(z < -30);
-    %             [~,thr_idx,~] = intersect(overthr_idx,overbaseThr_idx);
-    movEndFrames(1,itrial) = attenuated_idx(1);
-    if plotSanity && itrial <=16
-        subplot(4,4,itrial)
-        plot(z, 'Color',[.5 0 .5]);
-        hold on;
-        xline(movEndFrames(1,itrial));
+if find_allTrials == 0
+    idx_specified = [nan];
+    for itrialScore = 1:length(trialScoreThr)
+        thisScore_idx = find(trialScores == trialScoreThr(itrialScore));
+        idx_specified = [idx_specified thisScore_idx];
     end
-end
+    if length(trialScoreThr) > 1
+        idx_specified(1) = [];
+    end
+    % Find where the block condition is met (baseline vs stimulation)
+    [~,block_score_idx,~] = intersect(trialBlock,idx_specified);
+    score_total_idx = trialBlock(block_score_idx);
+    movEndFrames = NaN(1,length(score_total_idx));
+    if plotSanity
+        figure;
+    end
+    for itrial = 1:length(score_total_idx)
+        thisTraj = traj(score_total_idx(itrial),:,:);
+        z = squeeze(traj(score_total_idx(itrial),3,:));
+        z_smooth = smoothdata(z,'movmedian',60);
+        z_deriv = diff(z_smooth);
+        z_deriv = smoothdata(z_deriv,'movmedian',60);
+        max_z_deriv = max(z_deriv);
+        thr = max_z_deriv*.1;
+        overthr_idx = find(z_deriv <= thr);
+        attenuated_idx = overthr_idx(find(overthr_idx > movStartFrames(1,itrial)));
+        %             overbaseThr_idx = find(z < -30);
+        %             [~,thr_idx,~] = intersect(overthr_idx,overbaseThr_idx);
+        movEndFrames(1,itrial) = attenuated_idx(1);
+        if plotSanity && itrial <=16
+            subplot(4,4,itrial)
+            plot(z, 'Color',[.5 0 .5]);
+            hold on;
+            xline(movEndFrames(1,itrial));
+        end
+    end
+else
+    movEndFrames = NaN(1,size(traj,1));
+    if plotSanity
+        figure;
+    end
+    for itrial = 1:size(traj,1)
+        thisTraj = traj(itrial,:,:);
+        z = squeeze(traj(itrial,3,:));
+        z_smooth = smoothdata(z,'movmedian',60);
+        z_deriv = diff(z_smooth);
+        z_deriv = smoothdata(z_deriv,'movmedian',60);
+        max_z_deriv = max(z_deriv);
+        thr = max_z_deriv*.1;
+        overthr_idx = find(z_deriv <= thr);
+        attenuated_idx = overthr_idx(find(overthr_idx > movStartFrames(1,itrial)));
+        %             overbaseThr_idx = find(z < -30);
+        %             [~,thr_idx,~] = intersect(overthr_idx,overbaseThr_idx);
+        movEndFrames(1,itrial) = attenuated_idx(1);
+        if plotSanity && itrial <=16
+            subplot(4,4,itrial)
+            plot(z, 'Color',[.5 0 .5]);
+            hold on;
+            xline(movEndFrames(1,itrial));
+        end
+    end
+    score_total_idx = 0;
 end
